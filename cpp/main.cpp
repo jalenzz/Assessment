@@ -29,7 +29,7 @@
  * bool Matrix::operator==(const Matrix& other)                     10 points
  */
 
-#include "matrix.h"
+#include "matrix.hpp"
 
 int main() {
     int rows, cols;
