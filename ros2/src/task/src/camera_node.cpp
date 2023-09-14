@@ -7,7 +7,6 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "cv_bridge/cv_bridge.h"
-#include "std_msgs/msg/string.hpp"
 #include "my_interfaces/msg/my_mat.hpp"
 
 using namespace std::chrono_literals;
@@ -19,7 +18,7 @@ public:
         capture.open(0);
         publisher_ = this->create_publisher<my_interfaces::msg::MyMat>("raw_image", 10);
         timer_ = this->create_wall_timer(
-            100ms, std::bind(&ImagePublisher::timer_callback, this));
+            10ms, std::bind(&ImagePublisher::timer_callback, this));
     }
 
 private:

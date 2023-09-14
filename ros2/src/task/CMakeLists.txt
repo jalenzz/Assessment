@@ -22,9 +22,13 @@ add_executable(find_red_node src/find_red_node.cpp)
 target_link_libraries(find_red_node ${OpenCV_LIBS})
 ament_target_dependencies(find_red_node rclcpp OpenCV std_msgs my_interfaces cv_bridge)
 
+add_executable(serial_node src/serial_node.cpp)
+ament_target_dependencies(serial_node rclcpp  std_msgs)
+
 install(TARGETS
     camera_node
     find_red_node
+    serial_node
     DESTINATION lib/${PROJECT_NAME})
 
 ament_package()
