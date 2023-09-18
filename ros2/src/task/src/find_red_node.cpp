@@ -13,7 +13,7 @@ class ImageSubscriber : public rclcpp::Node
 {
 public:
     ImageSubscriber()
-    : Node("image_subscriber") , red_count(0) {
+    : Node("image_subscriber"), fps(0.0), last_time(time(0)), red_count(0) {
         subscription_ = this->create_subscription<my_interfaces::msg::MyMat>(
             "raw_image", 10, std::bind(&ImageSubscriber::topic_callback, this, _1));
 
@@ -26,10 +26,8 @@ private:
     void topic_callback(const my_interfaces::msg::MyMat &msg) {
         auto cv_ptr = cv_bridge::toCvCopy(msg.image, sensor_msgs::image_encodings::TYPE_8UC3);
         auto cv_image = cv_ptr->image;
-
-        double fps = 0.0;
         cv::Mat hsv_image, red_mask;
-        RCLCPP_INFO(this->get_logger(), "get image '%s'", msg.time_stamp.c_str());
+        RCLCPP_INFO(this->get_logger(), "get image '%lf'", msg.time.data);
 
         cvtColor(cv_image, hsv_image, cv::COLOR_BGR2HSV);
 
@@ -52,19 +50,25 @@ private:
         }
 
         red_count = contours.size();
+        fps = 1.0 / (msg.time.data - last_time);
+        RCLCPP_INFO(this->get_logger(), "interval '%lf'", msg.time.data - last_time);
+        RCLCPP_INFO(this->get_logger(), "fps: '%lf'", fps);
         RCLCPP_INFO(this->get_logger(), "find red'%d'", red_count);
-        cv::putText(cv_image, "FPS: " + std::to_string(fps) + "\n" + msg.time_stamp,
+        cv::putText(cv_image, "FPS: " + std::to_string(fps),
                     cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 2);
         cv::imshow("Result", cv_image);
-        cv::imshow("RedMask", red_mask);
+        // cv::imshow("RedMask", red_mask);
         cv::waitKey(10);
+        last_time = msg.time.data;
     }
     void timer_callback() {
         auto message = std_msgs::msg::UInt8();
         message.data = (char)red_count;
-        RCLCPP_INFO(this->get_logger(), "Publishing: '%d'", message.data);
+        // RCLCPP_INFO(this->get_logger(), "Publishing: '%d'", message.data);
         publisher_->publish(message);
     }
+    double fps;
+    time_t last_time;
     uint8_t red_count;      // 红色物体数量
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Subscription<my_interfaces::msg::MyMat>::SharedPtr subscription_;

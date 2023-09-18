@@ -23,17 +23,17 @@ public:
 
 private:
     void timer_callback() {
-        time_t now = time(0);
+        auto now = rclcpp::Clock().now().seconds();
         capture >> cv_image;
         my_interfaces::msg::MyMat message;
 
-        message.time_stamp = std::to_string(now);
+        message.time.data = now;
         std_msgs::msg::Header header;
         message.image = *cv_bridge::CvImage(header, "bgr8", cv_image).toImageMsg();
         // message.image = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", cv_image).toImageMsg(); 
         ++count_;
 
-        RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.time_stamp.c_str());
+        RCLCPP_INFO(this->get_logger(), "Publishing: '%lf'", message.time.data);
         publisher_->publish(message);
     }
     rclcpp::TimerBase::SharedPtr timer_;

@@ -1,2 +1,2 @@
 sensor_msgs/Image image
-string time_stamp
+std_msgs/Float64 time
