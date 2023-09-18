@@ -1,6 +1,5 @@
-#include <memory>
-
 #include "opencv2/opencv.hpp"
+
 #include "rclcpp/rclcpp.hpp"
 #include "cv_bridge/cv_bridge.h"
 #include "std_msgs/msg/u_int8.hpp"
@@ -9,17 +8,16 @@
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
-class ImageSubscriber : public rclcpp::Node
-{
+class ImageSubscriber : public rclcpp::Node {
 public:
-    ImageSubscriber()
-    : Node("image_subscriber"), fps(0.0), last_time(time(0)), red_count(0) {
+    ImageSubscriber() : Node("image_subscriber"),
+    fps(0.0), last_time(time(0)), red_count(0) {
         subscription_ = this->create_subscription<my_interfaces::msg::MyMat>(
             "raw_image", 10, std::bind(&ImageSubscriber::topic_callback, this, _1));
 
         publisher_ = this->create_publisher<std_msgs::msg::UInt8>("red_count", 10);
         timer_ = this->create_wall_timer(
-            10ms, std::bind(&ImageSubscriber::timer_callback, this));
+            1ms, std::bind(&ImageSubscriber::timer_callback, this));
     }
 
 private:

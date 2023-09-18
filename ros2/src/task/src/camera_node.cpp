@@ -1,8 +1,3 @@
-#include <chrono>
-#include <functional>
-#include <memory>
-#include <string>
-
 #include "opencv2/opencv.hpp"
 
 #include "rclcpp/rclcpp.hpp"
@@ -11,14 +6,13 @@
 
 using namespace std::chrono_literals;
 
-class ImagePublisher : public rclcpp::Node{
+class ImagePublisher : public rclcpp::Node {
 public:
-    ImagePublisher()
-    : Node("ImagePublisher"), count_(0) {
+    ImagePublisher() : Node("ImagePublisher") {
         capture.open(0);
         publisher_ = this->create_publisher<my_interfaces::msg::MyMat>("raw_image", 10);
         timer_ = this->create_wall_timer(
-            10ms, std::bind(&ImagePublisher::timer_callback, this));
+            1ms, std::bind(&ImagePublisher::timer_callback, this));
     }
 
 private:
@@ -30,17 +24,14 @@ private:
         message.time.data = now;
         std_msgs::msg::Header header;
         message.image = *cv_bridge::CvImage(header, "bgr8", cv_image).toImageMsg();
-        // message.image = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", cv_image).toImageMsg(); 
-        ++count_;
 
         RCLCPP_INFO(this->get_logger(), "Publishing: '%lf'", message.time.data);
         publisher_->publish(message);
     }
+    cv::Mat cv_image;
+    cv::VideoCapture capture;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<my_interfaces::msg::MyMat>::SharedPtr publisher_;
-    size_t count_;
-    cv::VideoCapture capture;
-    cv::Mat cv_image;
 };
 
 int main(int argc, char *argv[]) {
